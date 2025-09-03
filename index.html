@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Home Controller</title>
+    <link rel="manifest" href="./manifest.json">
+    <link rel="icon" type="image/svg+xml" href="./icon.svg">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="./styles/main.css">
+    <link rel="stylesheet" href="./styles/themes.css">
+    <link rel="stylesheet" href="./styles/components.css">
+    <meta name="theme-color" content="#4361ee">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head>
+<body class="light-theme">
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo" onclick="handleLogoClick()">
+                    <i class="fas fa-home"></i>
+                    <span>Smart Home</span>
+                </div>
+                
+                <div class="header-status">
+                    <div class="connection-status">
+                        <div class="status-indicator" id="statusIndicator"></div>
+                        <span id="statusText">Disconnected</span>
+                    </div>
+                    <button class="btn btn-primary" id="loginBtn">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Login</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="navigation">
+        <div class="container">
+            <div class="nav-items">
+                <div class="nav-item active" data-target="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </div>
+                <div class="nav-item" data-target="schedules">
+                    <i class="fas fa-clock"></i>
+                    <span>Jadwal</span>
+                </div>
+                <div class="nav-item" data-target="configuration">
+                    <i class="fas fa-cog"></i>
+                    <span>Konfigurasi</span>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="section-header">
+                    <h1>Dashboard Kontrol</h1>
+                    <div class="control-buttons">
+                        <button class="btn btn-success" id="connectBtn">
+                            <i class="fas fa-plug"></i> Connect
+                        </button>
+                        <button class="btn btn-danger" id="disconnectBtn">
+                            <i class="fas fa-unplug"></i> Disconnect
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="switch-grid" id="switchGrid">
+                    <!-- Switch cards will be generated here -->
+                </div>
+            </section>
+
+            <!-- Schedules Section -->
+            <section id="schedules" class="content-section">
+                <div class="section-header">
+                    <h1>Manajemen Jadwal</h1>
+                    <button class="btn btn-primary" id="addScheduleBtn">
+                        <i class="fas fa-plus"></i> Tambah Jadwal
+                    </button>
+                </div>
+                
+                <div class="schedule-list" id="scheduleList">
+                    <!-- Schedule items will be rendered here -->
+                </div>
+            </section>
+
+            <!-- Configuration Section -->
+            <section id="configuration" class="content-section">
+                <div class="section-header">
+                    <h1>Konfigurasi</h1>
+                </div>
+                
+                <div class="config-tabs">
+                    <div class="config-tab active" data-target="mqttConfig">MQTT</div>
+                    <div class="config-tab" data-target="deviceConfig">Perangkat</div>
+                    <div class="config-tab" data-target="systemConfig">Sistem</div>
+                    <div class="config-tab" data-target="loginConfig">Login</div>
+                </div>
+
+                <!-- MQTT Configuration -->
+                <div id="mqttConfig" class="config-content active">
+                    <div class="config-card">
+                        <h3>Konfigurasi MQTT Broker</h3>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="brokerProtocol">Protocol</label>
+                                <select id="brokerProtocol" class="form-control">
+                                    <option value="wss">WSS (Secure)</option>
+                                    <option value="ws">WS</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="brokerAddress">Broker Address</label>
+                                <input type="text" id="brokerAddress" class="form-control" placeholder="test.mosquitto.org">
+                            </div>
+                            <div class="form-group">
+                                <label for="brokerPort">Port</label>
+                                <input type="number" id="brokerPort" class="form-control" placeholder="8081">
+                            </div>
+                            <div class="form-group">
+                                <label for="brokerPath">Path</label>
+                                <input type="text" id="brokerPath" class="form-control" placeholder="/mqtt">
+                            </div>
+                            <div class="form-group">
+                                <label for="clientId">Client ID</label>
+                                <input type="text" id="clientId" class="form-control" readonly>
+                            </div>
+                            <div class="form-group">
+                                <label for="username">Username (Optional)</label>
+                                <input type="text" id="username" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password (Optional)</label>
+                                <input type="password" id="password" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="topicControl">Control Topic</label>
+                                <input type="text" id="topicControl" class="form-control" placeholder="home/light/control">
+                            </div>
+                            <div class="form-group">
+                                <label for="topicStatus">Status Topic</label>
+                                <input type="text" id="topicStatus" class="form-control" placeholder="home/light/status">
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="saveConfigBtn">Simpan Konfigurasi</button>
+                            <button class="btn btn-secondary" id="testConnectionBtn">Test Koneksi</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Configuration -->
+                <div id="deviceConfig" class="config-content">
+                    <div class="config-card">
+                        <h3>Konfigurasi Perangkat</h3>
+                        <div id="deviceConfigList">
+                            <!-- Device config items will be rendered here -->
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="saveDeviceConfigBtn">Simpan Konfigurasi</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- System Configuration -->
+                <div id="systemConfig" class="config-content">
+                    <div class="config-card">
+                        <h3>Konfigurasi Sistem</h3>
+                        <div class="form-group">
+                            <label for="restoreState">Pulihkan Status Perangkat</label>
+                            <select id="restoreState" class="form-control">
+                                <option value="yes">Ya</option>
+                                <option value="no">Tidak</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="autoConnect">Auto Connect</label>
+                            <select id="autoConnect" class="form-control">
+                                <option value="yes">Ya</option>
+                                <option value="no">Tidak</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="autoReconnect" checked>
+                                Auto Reconnect saat koneksi terputus
+                            </label>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="saveSystemConfigBtn">Simpan Konfigurasi</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Login Configuration -->
+                <div id="loginConfig" class="config-content">
+                    <div class="config-card">
+                        <h3>Konfigurasi Login Admin</h3>
+                        <div class="form-group">
+                            <label for="adminUsername">Username Admin</label>
+                            <input type="text" id="adminUsername" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label for="adminPassword">Password Admin</label>
+                            <div class="password-input">
+                                <input type="password" id="adminPassword" class="form-control">
+                                <button type="button" class="password-toggle" id="togglePassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Konfirmasi Password</label>
+                            <div class="password-input">
+                                <input type="password" id="confirmPassword" class="form-control">
+                                <button type="button" class="password-toggle" id="toggleConfirmPassword">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-actions">
+                            <button class="btn btn-primary" id="saveLoginConfigBtn">Simpan Konfigurasi</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Debug Panel -->
+    <div class="debug-panel hidden" id="debugPanel">
+        <div class="debug-header">
+            <h3>Debug Log</h3>
+            <button class="btn btn-sm" id="toggleDebug">
+                <i class="fas fa-eye"></i>
+                <span>Sembunyikan</span>
+            </button>
+        </div>
+        <div class="debug-content" id="debugContent">
+            <!-- Debug messages will appear here -->
+        </div>
+    </div>
+
+    <!-- Theme Selector -->
+    <div class="theme-selector">
+        <button class="theme-fab" id="themeFab">
+            <i class="fas fa-palette"></i>
+        </button>
+        
+        <div class="theme-panel" id="themePanel">
+            <div class="theme-panel-header">
+                <h3>Pilih Theme</h3>
+            </div>
+            
+            <div class="theme-presets">
+                <div class="theme-preset light active" data-theme="light">
+                    <i class="fas fa-sun"></i><br>Light
+                </div>
+                <div class="theme-preset dark" data-theme="dark">
+                    <i class="fas fa-moon"></i><br>Dark
+                </div>
+                <div class="theme-preset modern" data-theme="modern">
+                    <i class="fas fa-gem"></i><br>Modern
+                </div>
+                <div class="theme-preset neon" data-theme="neon">
+                    <i class="fas fa-bolt"></i><br>Neon
+                </div>
+                <div class="theme-preset classic" data-theme="classic">
+                    <i class="fas fa-leaf"></i><br>Classic
+                </div>
+            </div>
+            
+            <div class="animation-selector">
+                <label for="switchAnimation">Switch Animation</label>
+                <select id="switchAnimation" class="form-control">
+                    <option value="flip">Flip</option>
+                    <option value="rotate">Rotate</option>
+                    <option value="scale">Scale</option>
+                    <option value="slide">Slide</option>
+                </select>
+            </div>
+            
+            <div class="custom-colors">
+                <h4>Custom Colors</h4>
+                <div class="color-inputs">
+                    <div class="color-input">
+                        <label>Primary</label>
+                        <input type="color" id="customPrimary" value="#4361ee">
+                    </div>
+                    <div class="color-input">
+                        <label>Secondary</label>
+                        <input type="color" id="customSecondary" value="#3a0ca3">
+                    </div>
+                    <div class="color-input">
+                        <label>Success</label>
+                        <input type="color" id="customSuccess" value="#4cc9f0">
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-sm" id="applyCustomColors">Apply Custom</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Login Admin</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="loginUsername">Username</label>
+                    <input type="text" id="loginUsername" class="form-control" placeholder="admin">
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">Password</label>
+                    <div class="password-input">
+                        <input type="password" id="loginPassword" class="form-control" placeholder="admin">
+                        <button type="button" class="password-toggle" id="toggleLoginPassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="rememberLogin">
+                        Ingat login selama 7 hari
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="loginSubmitBtn">Login</button>
+                <button class="btn btn-secondary" id="continueWithoutLogin">Lanjut Tanpa Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Schedule Modal -->
+    <div id="scheduleModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Tambah Jadwal</h2>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="scheduleName">Nama Jadwal</label>
+                    <input type="text" id="scheduleName" class="form-control" placeholder="Contoh: Lampu Pagi">
+                </div>
+                <div class="form-group">
+                    <label for="scheduleSwitch">Pilih Perangkat</label>
+                    <select id="scheduleSwitch" class="form-control">
+                        <!-- Options will be populated by JavaScript -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="scheduleDays">Hari</label>
+                    <select id="scheduleDays" class="form-control" multiple>
+                        <option value="0">Minggu</option>
+                        <option value="1">Senin</option>
+                        <option value="2">Selasa</option>
+                        <option value="3">Rabu</option>
+                        <option value="4">Kamis</option>
+                        <option value="5">Jumat</option>
+                        <option value="6">Sabtu</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="scheduleTime">Waktu</label>
+                    <input type="time" id="scheduleTime" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="scheduleAction">Aksi</label>
+                    <select id="scheduleAction" class="form-control">
+                        <option value="on">Hidupkan</option>
+                        <option value="off">Matikan</option>
+                        <option value="toggle">Toggle</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="scheduleIntensity">Intensitas: <span id="scheduleIntensityValue">100%</span></label>
+                    <input type="range" min="0" max="100" value="100" id="scheduleIntensity" class="form-control">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="saveScheduleBtn">Simpan</button>
+                <button class="btn btn-secondary" onclick="this.closest('.modal').style.display='none'">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Emergency Recovery Modal -->
+    <div id="emergencyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🚨 Emergency Recovery</h2>
+            </div>
+            <div class="modal-body">
+                <p>Masukkan kredensial default untuk reset:</p>
+                <div class="form-group">
+                    <label for="emergencyUsername">Username</label>
+                    <input type="text" id="emergencyUsername" class="form-control" placeholder="admin">
+                </div>
+                <div class="form-group">
+                    <label for="emergencyPassword">Password</label>
+                    <div class="password-input">
+                        <input type="password" id="emergencyPassword" class="form-control" placeholder="admin">
+                        <button type="button" class="password-toggle" id="toggleEmergencyPassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" id="emergencySubmitBtn">Reset</button>
+                <button class="btn btn-secondary" id="cancelEmergencyBtn">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Connection Alert -->
+    <div id="connectionAlert" class="alert" style="display: none;">
+        <span id="alertMessage"></span>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mqtt/4.3.7/mqtt.min.js"></script>
+    <script src="./js/config.js"></script>
+    <script src="./js/utils.js"></script>
+    <script src="./js/theme-manager.js"></script>
+    <script src="./js/device-manager.js"></script>
+    <script src="./js/mqtt-client.js"></script>
+    <script src="./js/schedule-manager.js"></script>
+    <script src="./js/login-manager.js"></script>
+    <script src="./js/navigation.js"></script>
+    <script src="./js/app.js"></script>
+</body>
+</html>
