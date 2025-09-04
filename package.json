@@ -1,0 +1,21 @@
+{
+  "name": "smart-home-controller",
+  "version": "1.0.0",
+  "description": "Smart Home Controller with MQTT support",
+  "main": "index.html",
+  "scripts": {
+    "build": "echo 'Static HTML project - no build step required'",
+    "dev": "python3 -m http.server 8000",
+    "start": "python3 -m http.server 8000"
+  },
+  "keywords": [
+    "smart-home",
+    "mqtt",
+    "iot",
+    "home-automation"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}
